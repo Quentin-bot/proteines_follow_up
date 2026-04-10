@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Protéines</title>
+
+  <!-- PWA iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Protéines" />
+
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --card: #1a1a1a;
+      --card2: #222;
+      --accent: #a8e063;
+      --accent2: #56ab2f;
+      --text: #f0f0f0;
+      --muted: #888;
+      --danger: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding: calc(env(safe-area-inset-top, 20px) + 16px) 16px calc(env(safe-area-inset-bottom, 20px) + 16px);
+      gap: 20px;
+    }
+
+    /* ── HEADER ── */
+    .header { text-align: center; }
+    .header .date {
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── RING ── */
+    .ring-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .ring-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-svg {
+      width: 200px;
+      height: 200px;
+      transform: rotate(-90deg);
+    }
+    .ring-bg { fill: none; stroke: var(--card2); stroke-width: 14; }
+    .ring-progress {
+      fill: none;
+      stroke: url(#ringGrad);
+      stroke-width: 14;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .ring-center {
+      position: absolute;
+      text-align: center;
+      pointer-events: none;
+    }
+    .ring-value { font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+    .ring-unit  { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+    /* Goal row below ring */
+    .goal-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1.5px solid #2a2a2a;
+      border-radius: 40px;
+      padding: 8px 16px;
+    }
+    .goal-row span { font-size: 0.85rem; color: var(--muted); }
+    .goal-row strong { font-size: 0.9rem; color: var(--accent); font-weight: 700; }
+    .goal-edit-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.15s;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .goal-edit-btn:active { color: var(--accent); }
+
+    /* ── QUICK ADD ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .quick-btn {
+      background: var(--card);
+      border: 1.5px solid #2a2a2a;
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 16px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.1s, background 0.15s;
+      user-select: none;
+    }
+    .quick-btn small { display: block; font-size: 0.62rem; font-weight: 500; color: var(--muted); margin-top: 2px; }
+    .quick-btn:active { transform: scale(0.92); background: #2a2a2a; }
+
+    /* ── CUSTOM INPUT ── */
+    .custom-row { display: flex; gap: 10px; }
+
+    .custom-input {
+      flex: 1;
+      background: var(--card);
+      border: 1.5px solid #2a2a2a;
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 16px 18px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .custom-input:focus { border-color: var(--accent2); }
+    .custom-input::placeholder { color: #555; font-weight: 400; }
+
+    .add-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 14px;
+      color: #0d0d0d;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 16px 22px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .add-btn:active { transform: scale(0.92); opacity: 0.85; }
+
+    /* ── LOG ── */
+    .log-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .log-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .log-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 20px 0;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 14px 16px;
+      gap: 12px;
+      animation: slideIn 0.25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .log-icon { font-size: 1.4rem; }
+    .log-info { flex: 1; }
+    .log-amount { font-size: 1rem; font-weight: 700; }
+    .log-amount span { color: var(--accent); }
+    .log-time { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .log-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: color 0.15s;
+    }
+    .log-delete:active { color: var(--danger); }
+
+    /* ── RESET ── */
+    .reset-btn {
+      background: none;
+      border: 1.5px solid #2a2a2a;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .reset-btn:active { color: var(--danger); border-color: var(--danger); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1c1c1e;
+      border-radius: 24px 24px 0 0;
+      padding: 28px 24px calc(env(safe-area-inset-bottom, 20px) + 28px);
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; text-align: center; }
+    .modal-sub { font-size: 0.8rem; color: var(--muted); text-align: center; margin-bottom: 18px; }
+    .modal-row { display: flex; gap: 10px; }
+    .modal-input {
+      flex: 1;
+      background: #2a2a2a;
+      border: 1.5px solid #3a3a3a;
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 16px 18px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .modal-input:focus { border-color: var(--accent2); }
+    .modal-save {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 14px;
+      color: #0d0d0d;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 16px 22px;
+      cursor: pointer;
+    }
+    .modal-cancel {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 14px;
+      cursor: pointer;
+      padding: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="date" id="dateLabel"></div>
+    <h1>Mon compteur <span>protéines</span></h1>
+  </div>
+
+  <!-- RING -->
+  <div class="ring-wrap">
+    <div class="ring-container">
+      <svg class="ring-svg" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#a8e063"/>
+            <stop offset="100%" stop-color="#56ab2f"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="100" cy="100" r="84"/>
+        <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="84"/>
+      </svg>
+      <div class="ring-center">
+        <div class="ring-value" id="totalValue">0</div>
+        <div class="ring-unit">grammes</div>
+      </div>
+    </div>
+
+    <div class="goal-row">
+      <span>Objectif :</span>
+      <strong id="goalDisplay">150</strong>
+      <span>g</span>
+      <button class="goal-edit-btn" id="goalEditBtn">Modifier</button>
+    </div>
+  </div>
+
+  <!-- QUICK ADD -->
+  <div>
+    <div class="section-label">Ajout rapide</div>
+    <div class="quick-grid">
+      <button class="quick-btn" data-g="10">+10<small>g</small></button>
+      <button class="quick-btn" data-g="20">+20<small>g</small></button>
+      <button class="quick-btn" data-g="25">+25<small>g</small></button>
+      <button class="quick-btn" data-g="30">+30<small>g</small></button>
+      <button class="quick-btn" data-g="35">+35<small>g</small></button>
+      <button class="quick-btn" data-g="40">+40<small>g</small></button>
+      <button class="quick-btn" data-g="50">+50<small>g</small></button>
+      <button class="quick-btn" data-g="100">+100<small>g</small></button>
+    </div>
+  </div>
+
+  <!-- CUSTOM INPUT -->
+  <div>
+    <div class="section-label">Quantité libre</div>
+    <div class="custom-row">
+      <input class="custom-input" id="customInput" type="number" inputmode="decimal"
+        placeholder="Ex: 45 g" min="1" max="999" />
+      <button class="add-btn" id="addCustom">Ajouter</button>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-scroll">
+    <div class="section-label">Aujourd'hui</div>
+    <div class="log-list" id="logList"></div>
+  </div>
+
+  <!-- RESET -->
+  <button class="reset-btn" id="resetBtn">Remettre à zéro</button>
+
+  <!-- GOAL MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2>Objectif journalier</h2>
+      <p class="modal-sub">Combien de grammes de protéines visez-vous ?</p>
+      <div class="modal-row">
+        <input class="modal-input" id="goalInput" type="number" inputmode="decimal"
+          placeholder="Ex: 150" min="1" max="999" />
+        <button class="modal-save" id="goalSave">OK</button>
+      </div>
+      <button class="modal-cancel" id="modalCancel">Annuler</button>
+    </div>
+  </div>
+
+  <script>
+    const STORE_KEY = 'prot_data_v1';
+    const GOAL_KEY  = 'prot_goal_v1';
+    const R = 84;
+    const CIRC = 2 * Math.PI * R; // ≈ 527.8
+
+    // ── Storage helpers (safe) ─────────────────────────
+    function storageGet(key, fallback) {
+      try { return localStorage.getItem(key) ?? fallback; }
+      catch { return fallback; }
+    }
+    function storageSet(key, value) {
+      try { localStorage.setItem(key, value); } catch {}
+    }
+
+    // ── State ──────────────────────────────────────────
+    let goal = parseInt(storageGet(GOAL_KEY, '150')) || 150;
+    let entries = [];  // [{id, g, time}]
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function loadEntries() {
+      try {
+        const raw = JSON.parse(storageGet(STORE_KEY, '{}'));
+        if (raw.date === todayStr() && Array.isArray(raw.entries)) {
+          entries = raw.entries;
+        } else {
+          entries = [];
+        }
+      } catch {
+        entries = [];
+      }
+    }
+
+    function saveEntries() {
+      storageSet(STORE_KEY, JSON.stringify({ date: todayStr(), entries }));
+    }
+
+    function total() {
+      return entries.reduce((s, e) => s + e.g, 0);
+    }
+
+    // ── Render ─────────────────────────────────────────
+    function render() {
+      const t = total();
+
+      // Counter text
+      document.getElementById('totalValue').textContent = t;
+      document.getElementById('goalDisplay').textContent = goal;
+
+      // Ring arc
+      const pct = Math.min(goal > 0 ? t / goal : 0, 1);
+      const fill = pct * CIRC;
+      const ring = document.getElementById('ringProgress');
+      ring.setAttribute('stroke-dasharray', fill + ' ' + CIRC);
+
+      // Log list
+      const list = document.getElementById('logList');
+      if (entries.length === 0) {
+        list.innerHTML = '<div class="log-empty">Aucune entrée pour l\'instant.</div>';
+      } else {
+        const icons = ['🥩','🍗','🥚','🐟','🥛','🧀','💪','🫘'];
+        list.innerHTML = [...entries].reverse().map((e, i) => `
+          <div class="log-item">
+            <div class="log-icon">${icons[i % icons.length]}</div>
+            <div class="log-info">
+              <div class="log-amount"><span>+${e.g} g</span> de protéines</div>
+              <div class="log-time">${e.time}</div>
+            </div>
+            <button class="log-delete" data-id="${e.id}" aria-label="Supprimer">✕</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // ── Add entry ──────────────────────────────────────
+    function addEntry(g) {
+      g = Math.round(parseFloat(g));
+      if (!g || g <= 0 || g > 999) return false;
+      const now = new Date();
+      const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      entries.push({ id: Date.now(), g, time });
+      saveEntries();
+      render();
+      return true;
+    }
+
+    // ── Date label ─────────────────────────────────────
+    function updateDateLabel() {
+      const d = new Date();
+      document.getElementById('dateLabel').textContent =
+        d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+
+    // ── Quick buttons ──────────────────────────────────
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        addEntry(btn.dataset.g);
+        if (navigator.vibrate) navigator.vibrate(30);
+      });
+    });
+
+    // ── Custom input ───────────────────────────────────
+    document.getElementById('addCustom').addEventListener('click', () => {
+      const input = document.getElementById('customInput');
+      if (addEntry(input.value)) {
+        input.value = '';
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    });
+    document.getElementById('customInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('addCustom').click();
+    });
+
+    // ── Delete ─────────────────────────────────────────
+    document.getElementById('logList').addEventListener('click', e => {
+      const btn = e.target.closest('.log-delete');
+      if (!btn) return;
+      const id = parseInt(btn.dataset.id);
+      entries = entries.filter(e => e.id !== id);
+      saveEntries();
+      render();
+    });
+
+    // ── Reset ──────────────────────────────────────────
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('Remettre le compteur à zéro ?')) {
+        entries = [];
+        saveEntries();
+        render();
+      }
+    });
+
+    // ── Goal modal ─────────────────────────────────────
+    function openGoalModal() {
+      document.getElementById('goalInput').value = goal;
+      document.getElementById('modalOverlay').classList.add('open');
+      setTimeout(() => document.getElementById('goalInput').select(), 300);
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    document.getElementById('goalEditBtn').addEventListener('click', openGoalModal);
+
+    document.getElementById('goalSave').addEventListener('click', () => {
+      const v = parseInt(document.getElementById('goalInput').value);
+      if (v > 0) {
+        goal = v;
+        storageSet(GOAL_KEY, goal);
+        render();
+      }
+      closeModal();
+    });
+    document.getElementById('goalInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('goalSave').click();
+    });
+    document.getElementById('modalCancel').addEventListener('click', closeModal);
+    document.getElementById('modalOverlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    });
+
+    // ── Auto-reset at midnight ─────────────────────────
+    setInterval(() => {
+      const stored = JSON.parse(storageGet(STORE_KEY, '{}') || '{}');
+      if (stored.date && stored.date !== todayStr()) {
+        entries = [];
+        saveEntries();
+        render();
+        updateDateLabel();
+      }
+    }, 60000);
+
+    // ── Init ───────────────────────────────────────────
+    loadEntries();
+    updateDateLabel();
+    render();
+  </script>
+</body>
+</html>
