@@ -183,8 +183,24 @@
     }
     .add-btn:active { transform: scale(0.92); opacity: 0.85; }
 
+    /* ── NAME INPUT ── */
+    .name-input {
+      width: 100%;
+      background: var(--card);
+      border: 1.5px solid #2a2a2a;
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 11px 16px;
+      margin-top: 8px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .name-input:focus { border-color: var(--accent2); }
+    .name-input::placeholder { color: #555; }
+
     /* ── LOG ── */
-    .log-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .log-scroll { }
     .log-list { display: flex; flex-direction: column; gap: 8px; }
 
     .log-empty {
@@ -211,6 +227,7 @@
     .log-info { flex: 1; }
     .log-amount { font-size: 1rem; font-weight: 700; }
     .log-amount span { color: var(--accent); }
+    .log-name { font-size: 0.8rem; color: var(--muted); margin-top: 2px; font-style: italic; }
     .log-time { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
     .log-delete {
       background: none;
@@ -360,16 +377,17 @@
         placeholder="Ex: 45 g" min="1" max="999" />
       <button class="add-btn" id="addCustom">Ajouter</button>
     </div>
-  </div>
-
-  <!-- LOG -->
-  <div class="log-scroll">
-    <div class="section-label">Aujourd'hui</div>
-    <div class="log-list" id="logList"></div>
+    <input class="name-input" id="nameInput" type="text" placeholder="Nom (optionnel) — ex: Skyr, Blanc de poulet…" maxlength="40" />
   </div>
 
   <!-- RESET -->
   <button class="reset-btn" id="resetBtn">Remettre à zéro</button>
+
+  <!-- LOG -->
+  <div class="log-scroll">
+    <div class="section-label">Historique du jour</div>
+    <div class="log-list" id="logList"></div>
+  </div>
 
   <!-- GOAL MODAL -->
   <div class="modal-overlay" id="modalOverlay">
@@ -402,7 +420,7 @@
 
     // ── State ──────────────────────────────────────────
     let goal = parseInt(storageGet(GOAL_KEY, '150')) || 150;
-    let entries = [];  // [{id, g, time}]
+    let entries = [];  // [{id, g, time, name?}]
 
     function todayStr() {
       return new Date().toISOString().slice(0, 10);
@@ -453,7 +471,7 @@
           <div class="log-item">
             <div class="log-icon">${icons[i % icons.length]}</div>
             <div class="log-info">
-              <div class="log-amount"><span>+${e.g} g</span> de protéines</div>
+              <div class="log-amount"><span>+${e.g} g</span>${e.name ? ' · ' + e.name : ' de protéines'}</div>
               <div class="log-time">${e.time}</div>
             </div>
             <button class="log-delete" data-id="${e.id}" aria-label="Supprimer">✕</button>
@@ -463,12 +481,14 @@
     }
 
     // ── Add entry ──────────────────────────────────────
-    function addEntry(g) {
+    function addEntry(g, name) {
       g = Math.round(parseFloat(g));
       if (!g || g <= 0 || g > 999) return false;
       const now = new Date();
       const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      entries.push({ id: Date.now(), g, time });
+      const entry = { id: Date.now(), g, time };
+      if (name && name.trim()) entry.name = name.trim();
+      entries.push(entry);
       saveEntries();
       render();
       return true;
@@ -491,9 +511,11 @@
 
     // ── Custom input ───────────────────────────────────
     document.getElementById('addCustom').addEventListener('click', () => {
-      const input = document.getElementById('customInput');
-      if (addEntry(input.value)) {
-        input.value = '';
+      const input    = document.getElementById('customInput');
+      const nameInpt = document.getElementById('nameInput');
+      if (addEntry(input.value, nameInpt.value)) {
+        input.value    = '';
+        nameInpt.value = '';
         if (navigator.vibrate) navigator.vibrate(30);
       }
     });
